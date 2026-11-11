@@ -1,0 +1,33 @@
+-- SPECTRA schema reference / verification notes
+-- Database utama telah dibuat sebelumnya. Jangan jalankan DROP TABLE.
+-- Pastikan tabel/kolom yang dipakai frontend tersedia.
+
+-- Required enum-like values:
+-- profiles.role: admin | committee | audience
+-- tournaments.format: double_elimination
+-- tournaments.status: draft | registration | ongoing | completed
+-- teams.status: registered | active | eliminated | champion
+-- matches.bracket: upper | lower | grand_final | grand_final_reset
+-- matches.status: pending | ready | live | completed | bye
+
+-- Frontend assumes:
+-- profiles(id uuid references auth.users, full_name text, role text)
+-- tournaments(id uuid, name text, format text, regular_match_format text,
+--   final_match_format text, status text, draw_locked boolean,
+--   bracket_locked boolean, created_at timestamptz)
+-- teams(id uuid, tournament_id uuid, name text, tag text, captain_name text,
+--   draw_position integer, status text, created_at timestamptz)
+-- matches(id uuid, tournament_id uuid, match_code text, bracket text,
+--   round_name text, match_number integer, team1_id uuid, team2_id uuid,
+--   team1_score integer, team2_score integer, winner_id uuid, loser_id uuid,
+--   status text, completed_at timestamptz)
+-- event_logs(tournament_id uuid, user_id uuid, action text, details jsonb)
+
+-- SECURITY CHECKLIST:
+-- 1. Enable RLS on profiles, tournaments, teams, matches, event_logs.
+-- 2. Public/anon: SELECT only on public tournament, teams, matches.
+-- 3. Authenticated admin: tournament/team writes.
+-- 4. Authenticated admin + committee: match writes.
+-- 5. Profiles: users may read their own profile; only admin may manage roles.
+-- 6. event_logs: staff can read/insert; public cannot read.
+-- 7. Never expose service_role or secret key in browser code.
